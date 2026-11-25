@@ -24,16 +24,19 @@
 -dontwarn com.fasterxml.aalto.**
 -dontwarn org.codehaus.stax2.**
 
--keeppackagenames org.apache.poi.ss.formula.function
-
-# O XMLBeans carrega os tipos de schema por reflexão.
--keep,allowoptimization class org.apache.poi.schemas.** { *; }
--keep,allowoptimization class org.apache.xmlbeans.** { *; }
--keep,allowoptimization class org.openxmlformats.schemas.** { *; }
--keep,allowoptimization class com.microsoft.schemas.** { *; }
--keep,allowoptimization class org.apache.commons.compress.archivers.zip.** { *; }
--keep,allowoptimization,allowobfuscation class org.apache.logging.log4j.** { *; }
+# O POI e o XMLBeans carregam muitas classes por reflexão, e otimizar dezenas de
+# milhares de classes de schema deixa o R8 lento demais. Mantemos essas
+# bibliotecas intactas; o R8 continua otimizando o código do próprio app.
+-keep class org.apache.poi.** { *; }
+-keep class org.apache.xmlbeans.** { *; }
+-keep class org.openxmlformats.schemas.** { *; }
+-keep class com.microsoft.schemas.** { *; }
+-keep class org.etsi.** { *; }
+-keep class org.w3.** { *; }
+-keep class org.apache.commons.** { *; }
+-keep class org.apache.logging.log4j.** { *; }
+-keep class com.zaxxer.sparsebits.** { *; }
 
 # Fábricas StAX definidas por System.setProperty (ver PoiAndroid).
--keep class com.fasterxml.aalto.stax.** { *; }
--keep class org.apache.poi.javax.xml.stream.** { *; }
+-keep class com.fasterxml.aalto.** { *; }
+-keep class org.codehaus.stax2.** { *; }
