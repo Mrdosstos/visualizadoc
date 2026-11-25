@@ -27,7 +27,7 @@ import br.com.mrdosstos.visualizadoc.core.TipoDocumento
 fun EmBreveScreen(documento: DocumentoAberto, onVoltar: () -> Unit) {
     val mensagem = when (documento.tipo) {
         TipoDocumento.PLANILHA -> "Abrindo planilha..."
-        TipoDocumento.WORD -> "A visualização de documentos Word chega em breve."
+        TipoDocumento.WORD -> "Arquivos .doc (formato antigo do Word) ainda não são suportados. Abra no Word ou no LibreOffice e salve como .docx."
         else -> "Este tipo de arquivo não é suportado."
     }
     Scaffold(

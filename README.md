@@ -6,7 +6,7 @@ App Android gratuito e sem anúncios para visualizar e editar documentos.
 |---|---|
 | PDF | ✅ Visualizar (rolagem, zoom com pinça) |
 | Planilhas (.xlsx, .xls, .csv) | ✅ Visualizar, editar células (texto, números, fórmulas) e salvar |
-| Word (.docx) | 🔜 Visualizar (fase 3) e editar (fase 4) |
+| Word (.docx) | ✅ Visualizar (títulos, listas, tabelas, imagens) e editar parágrafos, formatação e células de tabela |
 
 ## Download
 

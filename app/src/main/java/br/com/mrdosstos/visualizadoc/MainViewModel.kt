@@ -11,6 +11,7 @@ import br.com.mrdosstos.visualizadoc.core.ArquivoUtils
 import br.com.mrdosstos.visualizadoc.core.DocumentoAberto
 import br.com.mrdosstos.visualizadoc.core.TipoDocumento
 import br.com.mrdosstos.visualizadoc.data.RecentesRepository
+import br.com.mrdosstos.visualizadoc.ui.documento.EditorDocumento
 import br.com.mrdosstos.visualizadoc.ui.planilha.EditorPlanilha
 
 /** Estado da tela principal; sobrevive à rotação do aparelho. */
@@ -23,6 +24,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var documentoAberto by mutableStateOf<DocumentoAberto?>(null)
         private set
     var editorPlanilha by mutableStateOf<EditorPlanilha?>(null)
+        private set
+    var editorDocumento by mutableStateOf<EditorDocumento?>(null)
         private set
 
     /** Abre o documento. Retorna false se não for possível acessar o arquivo. */
@@ -40,12 +43,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (documento.tipo == TipoDocumento.PLANILHA) {
             editorPlanilha = EditorPlanilha(documento, app, viewModelScope, ::registrarRecente)
         }
+        // .doc (formato binário antigo) ainda não é suportado; só .docx.
+        if (documento.tipo == TipoDocumento.WORD && !documento.nome.lowercase().endsWith(".doc")) {
+            editorDocumento = EditorDocumento(documento, app, viewModelScope, ::registrarRecente)
+        }
         return true
     }
 
     fun fechar() {
         editorPlanilha?.close()
         editorPlanilha = null
+        editorDocumento?.close()
+        editorDocumento = null
         documentoAberto = null
     }
 
@@ -61,5 +70,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         editorPlanilha?.close()
+        editorDocumento?.close()
     }
 }

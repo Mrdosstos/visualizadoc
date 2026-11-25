@@ -14,6 +14,7 @@ import androidx.activity.viewModels
 import androidx.core.net.toUri
 import br.com.mrdosstos.visualizadoc.core.TipoDocumento
 import br.com.mrdosstos.visualizadoc.ui.EmBreveScreen
+import br.com.mrdosstos.visualizadoc.ui.documento.DocumentoScreen
 import br.com.mrdosstos.visualizadoc.ui.home.HomeScreen
 import br.com.mrdosstos.visualizadoc.ui.pdf.PdfScreen
 import br.com.mrdosstos.visualizadoc.ui.planilha.PlanilhaScreen
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
 
                 val documento = vm.documentoAberto
                 val editor = vm.editorPlanilha
+                val editorWord = vm.editorDocumento
                 val voltar = { vm.fechar() }
                 when {
                     documento == null -> HomeScreen(
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
                         onRemoverRecente = { vm.removerRecente(it.uri) },
                     )
                     editor != null -> PlanilhaScreen(editor, voltar)
+                    editorWord != null -> DocumentoScreen(editorWord, voltar)
                     documento.tipo == TipoDocumento.PDF -> {
                         BackHandler(onBack = voltar)
                         PdfScreen(documento, voltar)

@@ -7,8 +7,8 @@ plugins {
 }
 
 // Versão: o workflow de release passa -PversionName (da tag) e -PversionCode.
-val versaoNome = (findProperty("versionName") as String?) ?: "0.2.0"
-val versaoCodigo = (findProperty("versionCode") as String?)?.toInt() ?: 2
+val versaoNome = (findProperty("versionName") as String?) ?: "0.3.0"
+val versaoCodigo = (findProperty("versionCode") as String?)?.toInt() ?: 3
 
 // Assinatura de release: lida de variáveis de ambiente (Secrets do GitHub).
 // Sem elas (build local), o release é assinado com a chave de debug.

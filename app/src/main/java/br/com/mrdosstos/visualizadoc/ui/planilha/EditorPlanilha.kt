@@ -9,6 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import br.com.mrdosstos.visualizadoc.core.ArquivoUtils
 import br.com.mrdosstos.visualizadoc.core.DocumentoAberto
+import br.com.mrdosstos.visualizadoc.core.Gravacao
+import br.com.mrdosstos.visualizadoc.core.ResultadoSalvar
 import br.com.mrdosstos.visualizadoc.planilha.CelulaVisual
 import br.com.mrdosstos.visualizadoc.planilha.FormatoPlanilha
 import br.com.mrdosstos.visualizadoc.planilha.Planilha
@@ -21,19 +23,11 @@ import org.apache.poi.ss.util.CellReference
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.FileNotFoundException
-import java.io.OutputStream
 
 sealed interface EstadoPlanilha {
     data object Carregando : EstadoPlanilha
     data class Erro(val mensagem: String) : EstadoPlanilha
     data class Pronta(val abas: List<String>, val formato: FormatoPlanilha) : EstadoPlanilha
-}
-
-sealed interface ResultadoSalvar {
-    data object Ok : ResultadoSalvar
-    /** Sem permissão de escrita no arquivo original: oferecer "Salvar como". */
-    data object PrecisaSalvarComo : ResultadoSalvar
-    data class Erro(val mensagem: String) : ResultadoSalvar
 }
 
 /**
@@ -151,7 +145,7 @@ class EditorPlanilha(
         return try {
             // Gera o arquivo inteiro antes de abrir o destino, para não deixá-lo pela metade.
             val bytes = withContext(fila) { ByteArrayOutputStream().also { p.salvar(it) }.toByteArray() }
-            withContext(Dispatchers.IO) { abrirSaida(destino).use { it.write(bytes) } }
+            withContext(Dispatchers.IO) { Gravacao.abrirSaida(app, destino).use { it.write(bytes) } }
             modificado = false
             if (destino != documento.uri) {
                 documento = withContext(Dispatchers.IO) { ArquivoUtils.lerInfo(app, destino) }
@@ -169,15 +163,6 @@ class EditorPlanilha(
         } finally {
             salvando = false
         }
-    }
-
-    private fun abrirSaida(uri: Uri): OutputStream {
-        val resolver = app.contentResolver
-        return try {
-            resolver.openOutputStream(uri, "wt")
-        } catch (_: IllegalArgumentException) {
-            resolver.openOutputStream(uri, "w")
-        } ?: throw FileNotFoundException("Destino indisponível")
     }
 
     override fun close() {

@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.mrdosstos.visualizadoc.R
 import br.com.mrdosstos.visualizadoc.core.ArquivoUtils
+import br.com.mrdosstos.visualizadoc.core.ResultadoSalvar
 import br.com.mrdosstos.visualizadoc.planilha.Alinhamento
 import br.com.mrdosstos.visualizadoc.planilha.CelulaVisual
 import kotlinx.coroutines.launch
