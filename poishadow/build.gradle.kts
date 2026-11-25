@@ -74,7 +74,7 @@ tasks.shadowJar {
     archiveClassifier.set("all")
 
     from({ zipTree(ooxmlFull.singleFile) }) {
-        classesExtrasDoFull.forEach { include("$it.class", "$it\$*.class") }
+        classesExtrasDoFull.forEach { include("$it.class") }
     }
 
     // O POI registra extratores/renderizadores via META-INF/services.
