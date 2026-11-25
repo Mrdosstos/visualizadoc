@@ -43,10 +43,10 @@ android {
 
     buildTypes {
         release {
-            // R8 desligado por enquanto: com o Apache POI o build travava (>30 min).
-            // Custo: APK maior. Reavaliar a otimização numa fase futura.
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // R8 só remove código e recursos não usados (sem otimizar nem renomear,
+            // que travavam o build com o Apache POI). Ver proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
