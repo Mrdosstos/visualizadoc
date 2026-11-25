@@ -21,6 +21,7 @@ import br.com.mrdosstos.visualizadoc.data.RecentesRepository
 import br.com.mrdosstos.visualizadoc.data.Tema
 import br.com.mrdosstos.visualizadoc.documento.DocumentoWord
 import br.com.mrdosstos.visualizadoc.planilha.Planilha
+import br.com.mrdosstos.visualizadoc.ui.apresentacao.EditorApresentacao
 import br.com.mrdosstos.visualizadoc.ui.documento.EditorDocumento
 import br.com.mrdosstos.visualizadoc.ui.pdf.EditorPdf
 import br.com.mrdosstos.visualizadoc.ui.planilha.EditorPlanilha
@@ -69,6 +70,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var editorPdf by mutableStateOf<EditorPdf?>(null)
         private set
     var editorTexto by mutableStateOf<EditorTexto?>(null)
+        private set
+    var editorApresentacao by mutableStateOf<EditorApresentacao?>(null)
         private set
 
     /** Recentes no mesmo formato das outras listas (sem tamanho; data = quando foi aberto). */
@@ -131,10 +134,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         } catch (_: Exception) {
             return ResultadoAbrir.Falha
         }
-        if (documento.tipo == TipoDocumento.APRESENTACAO) {
-            registrarRecente(documento)
-            return ResultadoAbrir.AbrirFora(uri, TipoDocumento.mimeDoNome(documento.nome))
-        }
         fechar()
         registrarRecente(documento)
         documentoAberto = documento
@@ -143,6 +142,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             TipoDocumento.WORD -> editorDocumento = EditorDocumento(documento, app, viewModelScope, ::registrarRecente)
             TipoDocumento.PDF -> editorPdf = EditorPdf(documento, app, viewModelScope, ::registrarRecente)
             TipoDocumento.TEXTO -> editorTexto = EditorTexto(documento, app, viewModelScope, ::registrarRecente)
+            TipoDocumento.APRESENTACAO -> editorApresentacao = EditorApresentacao(documento, app, viewModelScope)
             else -> Unit
         }
         return ResultadoAbrir.Aberto
@@ -156,6 +156,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         editorPdf?.close()
         editorPdf = null
         editorTexto = null
+        editorApresentacao = null
         documentoAberto = null
         // Ao voltar para a lista, reflete arquivos salvos ou criados.
         atualizarArquivos()

@@ -20,6 +20,7 @@ import br.com.mrdosstos.visualizadoc.core.Compartilhar
 import br.com.mrdosstos.visualizadoc.core.TipoDocumento
 import br.com.mrdosstos.visualizadoc.data.ArquivosDoAparelho
 import br.com.mrdosstos.visualizadoc.ui.EmBreveScreen
+import br.com.mrdosstos.visualizadoc.ui.apresentacao.ApresentacaoScreen
 import br.com.mrdosstos.visualizadoc.ui.documento.DocumentoScreen
 import br.com.mrdosstos.visualizadoc.ui.home.AcoesInicio
 import br.com.mrdosstos.visualizadoc.ui.home.DadosInicio
@@ -69,6 +70,7 @@ class MainActivity : ComponentActivity() {
                 val editorWord = vm.editorDocumento
                 val editorPdf = vm.editorPdf
                 val editorTexto = vm.editorTexto
+                val editorApresentacao = vm.editorApresentacao
                 val voltar = { vm.fechar() }
                 when {
                     documento == null -> HomeScreen(
@@ -130,6 +132,10 @@ class MainActivity : ComponentActivity() {
                     }
                     editorPdf != null -> PdfScreen(editorPdf, voltar)
                     editorTexto != null -> TextoScreen(editorTexto, voltar)
+                    editorApresentacao != null -> ApresentacaoScreen(editorApresentacao, voltar) {
+                        val doc = editorApresentacao.documento
+                        abrirEmOutroApp(doc.uri, TipoDocumento.mimeDoNome(doc.nome))
+                    }
                     else -> {
                         BackHandler(onBack = voltar)
                         EmBreveScreen(documento, voltar)
@@ -169,7 +175,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /** PowerPoint: o VisualizaDoc ainda não exibe slides, então abre no app de apresentações. */
+    /** Abre o arquivo no app de apresentações do aparelho (layout original dos slides). */
     private fun abrirEmOutroApp(uri: Uri, mime: String) {
         val ver = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, mime)

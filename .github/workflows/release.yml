@@ -1,10 +1,18 @@
 name: Release
 
-# Ao criar uma tag v* (ex.: v0.1.0), compila o APK assinado
-# e publica uma Release no GitHub com o arquivo anexado.
+# Duas formas de publicar uma versão:
+# 1. Pelo botão "Run workflow" (aba Actions > Release), digitando a versão
+#    (ex.: 0.7.0). O workflow cria a tag v0.7.0 na main, compila e publica.
+# 2. Criando uma tag v* (ex.: v0.7.0) pelo terminal ou pela página de Releases.
 on:
   push:
     tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: 'Versão a publicar (ex.: 0.7.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -15,6 +23,27 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+
+      - name: Definir versão e tag
+        id: versao
+        env:
+          VERSAO_DIGITADA: ${{ inputs.versao }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSAO="${VERSAO_DIGITADA#v}"
+            if ! echo "$VERSAO" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Versão inválida: '$VERSAO_DIGITADA'. Use o formato 0.7.0"
+              exit 1
+            fi
+            if git ls-remote --exit-code --tags origin "refs/tags/v$VERSAO" >/dev/null; then
+              echo "::error::A tag v$VERSAO já existe. Escolha outra versão."
+              exit 1
+            fi
+          else
+            VERSAO="${GITHUB_REF_NAME#v}"
+          fi
+          echo "versao=$VERSAO" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSAO" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v6
         with:
@@ -42,15 +71,28 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSAO: ${{ steps.versao.outputs.versao }}
         run: |
-          VERSAO="${GITHUB_REF_NAME#v}"
           ./gradlew assembleRelease --stacktrace \
             -PversionName="$VERSAO" \
             -PversionCode="${{ github.run_number }}"
           mv app/build/outputs/apk/release/app-release.apk "VisualizaDoc-$VERSAO.apk"
 
+      # Pelo botão, a tag só é criada depois que o APK compilou.
+      - name: Criar tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG: ${{ steps.versao.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "VisualizaDoc $TAG"
+          git push origin "$TAG"
+
       - name: Publicar Release
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ steps.versao.outputs.tag }}
+          name: ${{ steps.versao.outputs.tag }}
           files: VisualizaDoc-*.apk
           generate_release_notes: true

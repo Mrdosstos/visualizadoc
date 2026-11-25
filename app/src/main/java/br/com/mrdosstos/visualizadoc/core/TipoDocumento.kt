@@ -5,7 +5,7 @@ enum class TipoDocumento(val sigla: String, val descricao: String) {
     PDF("PDF", "Documento PDF"),
     PLANILHA("XLS", "Planilha"),
     WORD("DOC", "Documento Word"),
-    /** PowerPoint: aparece na lista e abre em outro app. */
+    /** PowerPoint: visualização simplificada (textos, tabelas e imagens dos slides). */
     APRESENTACAO("PPT", "Apresentação"),
     TEXTO("TXT", "Texto"),
     DESCONHECIDO("?", "Arquivo");
@@ -40,7 +40,7 @@ enum class TipoDocumento(val sigla: String, val descricao: String) {
 
         /** MIME types oferecidos no seletor de arquivos do sistema (tipos que o app abre). */
         val MIMES_SUPORTADOS: Array<String> =
-            (MIMES_PDF + MIMES_PLANILHA + MIMES_WORD + MIMES_TEXTO).toTypedArray()
+            (MIMES_PDF + MIMES_PLANILHA + MIMES_WORD + MIMES_APRESENTACAO + MIMES_TEXTO).toTypedArray()
 
         /** MIME types de um tipo só, para abrir o seletor já filtrado. */
         fun mimesDe(tipo: TipoDocumento?): Array<String> = when (tipo) {

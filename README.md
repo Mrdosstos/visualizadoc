@@ -9,7 +9,7 @@ App Android gratuito e sem anúncios para visualizar e editar documentos.
 | Word (.docx) | ✅ Visualizar (títulos, listas, tabelas, imagens) e editar parágrafos, formatação e células de tabela |
 | Word antigo (.doc) | ✅ Ler e converter para .docx |
 | Texto (.txt) | ✅ Ler e editar |
-| PowerPoint | Lista e abre em outro app |
+| PowerPoint (.pptx, .ppt) | ✅ Visualização simplificada (títulos, textos, tabelas, imagens e notas de cada slide) ou abrir em outro app |
 | Geral | ✅ Lista todos os documentos do aparelho por tipo, busca, ordenação, favoritos, seleção múltipla (excluir/compartilhar), tema claro/escuro, criar documento Word ou planilha em branco |
 
 ## Download
