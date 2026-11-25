@@ -88,7 +88,9 @@ class DocumentoWord private constructor(private val doc: XWPFDocument) : Closeab
                 }
                 is XWPFTable -> blocos += Bloco.Tabela(
                     indice,
-                    elemento.rows.map { linha -> linha.tableCells.map { it.text.trimEnd('\n') } },
+                    elemento.rows.map { linha ->
+                        linha.tableCells.map { celula -> celula.paragraphs.joinToString("\n") { it.text } }
+                    },
                 )
                 is XWPFSDT -> blocos += Bloco.Paragrafo(
                     indice, listOf(Trecho(elemento.content.text)), 0, Alinhamento.ESQUERDA,
