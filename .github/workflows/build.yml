@@ -28,13 +28,6 @@ jobs:
       - name: Testes e build debug
         run: ./gradlew testDebugUnitTest assembleDebug --stacktrace
 
-      # Experimento: release com R8 (remoção de código). Limite de tempo para não travar.
-      - name: Build release (R8)
-        timeout-minutes: 15
-        run: |
-          ./gradlew assembleRelease --stacktrace
-          ls -l app/build/outputs/apk/release/ app/build/outputs/apk/debug/
-
       - uses: actions/upload-artifact@v7
         with:
           name: VisualizaDoc-debug
