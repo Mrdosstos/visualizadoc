@@ -24,11 +24,9 @@ jobs:
       # O pendrive (exFAT) não guarda o bit de execução do gradlew
       - run: chmod +x gradlew
 
-      - name: Testes
-        run: ./gradlew testDebugUnitTest --stacktrace
-
-      - name: Build debug
-        run: ./gradlew assembleDebug --stacktrace
+      # Uma só chamada ao Gradle: o projeto é configurado e o POI empacotado uma vez.
+      - name: Testes e build debug
+        run: ./gradlew testDebugUnitTest assembleDebug --stacktrace
 
       - uses: actions/upload-artifact@v7
         with:
