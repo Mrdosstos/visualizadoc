@@ -1,8 +1,7 @@
 name: Build
 
-# A cada push na main e em pull requests: roda os testes e compila debug e
-# release (o release valida as regras do R8; sem keystore, usa a chave de debug).
-# O APK debug fica nos artefatos da execução.
+# A cada push na main e em pull requests: roda os testes e compila o APK debug,
+# que fica nos artefatos da execução. O release é compilado no workflow de tags.
 on:
   push:
     branches: [ main ]
@@ -11,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -30,9 +29,6 @@ jobs:
 
       - name: Build debug
         run: ./gradlew assembleDebug --stacktrace
-
-      - name: Build release (valida o R8)
-        run: ./gradlew assembleRelease --stacktrace
 
       - uses: actions/upload-artifact@v7
         with:

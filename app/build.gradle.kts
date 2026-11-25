@@ -43,8 +43,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // R8 desligado por enquanto: com o Apache POI o build travava (>30 min).
+            // Custo: APK maior. Reavaliar a otimização numa fase futura.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -63,6 +65,11 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    lint {
+        // A análise de release travava com o POI; o lint segue disponível via ./gradlew lint.
+        checkReleaseBuilds = false
     }
 
     testOptions {
