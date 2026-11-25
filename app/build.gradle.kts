@@ -4,12 +4,16 @@ plugins {
 }
 
 // Versão: o workflow de release passa -PversionName (da tag) e -PversionCode.
-val versaoNome = (findProperty("versionName") as String?) ?: "0.1.0"
-val versaoCodigo = (findProperty("versionCode") as String?)?.toInt() ?: 1
+val versaoNome = (findProperty("versionName") as String?) ?: "0.2.0"
+val versaoCodigo = (findProperty("versionCode") as String?)?.toInt() ?: 2
 
 // Assinatura de release: lida de variáveis de ambiente (Secrets do GitHub).
 // Sem elas (build local), o release é assinado com a chave de debug.
 val keystoreArquivo: String? = System.getenv("KEYSTORE_FILE")
+
+// Apache POI adaptado para Android, gerado pelo módulo :poishadow.
+val poiJar = files("../poishadow/build/libs/poishadow-all.jar")
+    .builtBy(":poishadow:shadowJar")
 
 android {
     namespace = "br.com.mrdosstos.visualizadoc"
@@ -48,6 +52,8 @@ android {
     }
 
     compileOptions {
+        // O Apache POI usa APIs do Java mais novas que algumas versões do Android.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -55,15 +61,33 @@ android {
     buildFeatures {
         compose = true
     }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*",
+                "META-INF/*.md",
+            )
+        }
+    }
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    implementation(poiJar)
+
+    testImplementation(libs.junit)
 }

@@ -5,7 +5,7 @@ App Android gratuito e sem anúncios para visualizar e editar documentos.
 | Formato | Situação |
 |---|---|
 | PDF | ✅ Visualizar (rolagem, zoom com pinça) |
-| Planilhas (.xlsx, .xls, .csv) | 🔜 Visualizar e editar (fase 2) |
+| Planilhas (.xlsx, .xls, .csv) | ✅ Visualizar, editar células (texto, números, fórmulas) e salvar |
 | Word (.docx) | 🔜 Visualizar (fase 3) e editar (fase 4) |
 
 ## Download
@@ -26,6 +26,7 @@ O APK fica em `app/build/outputs/apk/debug/`.
 
 - Kotlin + Jetpack Compose (Material 3)
 - `PdfRenderer` nativo do Android para PDF
+- [Apache POI](https://poi.apache.org/) para planilhas, empacotado para Android no módulo `poishadow` (receita do [poi-on-android](https://github.com/centic9/poi-on-android))
 - Storage Access Framework para abrir arquivos (sem permissão de armazenamento)
 - minSdk 26 · targetSdk 36
 

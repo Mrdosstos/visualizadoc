@@ -26,7 +26,7 @@ import br.com.mrdosstos.visualizadoc.core.TipoDocumento
 @Composable
 fun EmBreveScreen(documento: DocumentoAberto, onVoltar: () -> Unit) {
     val mensagem = when (documento.tipo) {
-        TipoDocumento.PLANILHA -> "A visualização e edição de planilhas chega na próxima versão."
+        TipoDocumento.PLANILHA -> "Abrindo planilha..."
         TipoDocumento.WORD -> "A visualização de documentos Word chega em breve."
         else -> "Este tipo de arquivo não é suportado."
     }

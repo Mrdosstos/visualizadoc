@@ -1,7 +1,8 @@
 name: Build
 
-# Compila em modo debug a cada push na main e em pull requests,
-# só para avisar se o build quebrou. O APK fica nos artefatos da execução.
+# A cada push na main e em pull requests: roda os testes e compila debug e
+# release (o release valida as regras do R8; sem keystore, usa a chave de debug).
+# O APK debug fica nos artefatos da execução.
 on:
   push:
     branches: [ main ]
@@ -23,8 +24,8 @@ jobs:
       # O pendrive (exFAT) não guarda o bit de execução do gradlew
       - run: chmod +x gradlew
 
-      - name: Compilar APK debug
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Testes e build (debug + release)
+        run: ./gradlew testDebugUnitTest assembleDebug assembleRelease --stacktrace
 
       - uses: actions/upload-artifact@v7
         with:

@@ -10,30 +10,22 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.activity.viewModels
 import androidx.core.net.toUri
-import br.com.mrdosstos.visualizadoc.core.ArquivoUtils
-import br.com.mrdosstos.visualizadoc.core.DocumentoAberto
 import br.com.mrdosstos.visualizadoc.core.TipoDocumento
-import br.com.mrdosstos.visualizadoc.data.RecentesRepository
 import br.com.mrdosstos.visualizadoc.ui.EmBreveScreen
 import br.com.mrdosstos.visualizadoc.ui.home.HomeScreen
 import br.com.mrdosstos.visualizadoc.ui.pdf.PdfScreen
+import br.com.mrdosstos.visualizadoc.ui.planilha.PlanilhaScreen
 import br.com.mrdosstos.visualizadoc.ui.theme.VisualizaDocTheme
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var recentesRepo: RecentesRepository
-    private var documentoAberto by mutableStateOf<DocumentoAberto?>(null)
-    private var recentes by mutableStateOf(emptyList<br.com.mrdosstos.visualizadoc.data.ArquivoRecente>())
+    private val vm: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        recentesRepo = RecentesRepository(this)
-        recentes = recentesRepo.listar()
         if (savedInstanceState == null) tratarIntent(intent)
 
         setContent {
@@ -42,23 +34,24 @@ class MainActivity : ComponentActivity() {
                     ActivityResultContracts.OpenDocument()
                 ) { uri -> if (uri != null) abrir(uri, manterPermissao = true) }
 
-                val documento = documentoAberto
-                if (documento == null) {
-                    HomeScreen(
-                        recentes = recentes,
+                val documento = vm.documentoAberto
+                val editor = vm.editorPlanilha
+                val voltar = { vm.fechar() }
+                when {
+                    documento == null -> HomeScreen(
+                        recentes = vm.recentes,
                         onAbrirArquivo = { seletor.launch(TipoDocumento.MIMES_SUPORTADOS) },
                         onAbrirRecente = { abrir(it.uri.toUri(), manterPermissao = false) },
-                        onRemoverRecente = {
-                            recentesRepo.remover(it.uri)
-                            recentes = recentesRepo.listar()
-                        },
+                        onRemoverRecente = { vm.removerRecente(it.uri) },
                     )
-                } else {
-                    BackHandler { documentoAberto = null }
-                    val voltar = { documentoAberto = null }
-                    when (documento.tipo) {
-                        TipoDocumento.PDF -> PdfScreen(documento, voltar)
-                        else -> EmBreveScreen(documento, voltar)
+                    editor != null -> PlanilhaScreen(editor, voltar)
+                    documento.tipo == TipoDocumento.PDF -> {
+                        BackHandler(onBack = voltar)
+                        PdfScreen(documento, voltar)
+                    }
+                    else -> {
+                        BackHandler(onBack = voltar)
+                        EmBreveScreen(documento, voltar)
                     }
                 }
             }
@@ -78,19 +71,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun abrir(uri: Uri, manterPermissao: Boolean) {
-        if (manterPermissao) ArquivoUtils.manterPermissao(this, uri)
-        val documento = try {
-            ArquivoUtils.lerInfo(this, uri)
-        } catch (_: Exception) {
+        if (!vm.abrir(uri, manterPermissao)) {
             Toast.makeText(
                 this,
                 "Não foi possível acessar o arquivo. Abra-o novamente pelo botão \"Abrir arquivo\".",
                 Toast.LENGTH_LONG,
             ).show()
-            return
         }
-        recentesRepo.registrar(documento)
-        recentes = recentesRepo.listar()
-        documentoAberto = documento
     }
 }

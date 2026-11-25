@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "VisualizaDoc"
 include(":app")
+include(":poishadow")
