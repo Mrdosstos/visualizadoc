@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import java.time.Duration
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -66,9 +69,9 @@ android {
         unitTests.all { teste ->
             teste.testLogging {
                 events("passed", "failed", "skipped")
-                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                exceptionFormat = TestExceptionFormat.FULL
             }
-            teste.timeout.set(java.time.Duration.ofMinutes(5))
+            teste.timeout.set(Duration.ofMinutes(5))
         }
     }
 
