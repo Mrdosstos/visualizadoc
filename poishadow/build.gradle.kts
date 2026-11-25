@@ -90,11 +90,11 @@ tasks.shadowJar {
     exclude("module-info.class", "META-INF/versions/*/module-info.class")
     exclude("LICENSE.txt", "NOTICE.txt", "META-INF/LICENSE*", "META-INF/NOTICE*", "META-INF/maven/**")
 
-    // Usadas só por Visio e outros formatos que o app não trata.
+    // curvesapi só é usada por Visio, que o app não trata.
+    // commons-lang3 e commons-codec ficam: o commons-compress precisa da lang3
+    // para ler .docx/.xlsx com "campos extras" no ZIP (erro visto na v0.7.0).
     dependencies {
         exclude(dependency("com.github.virtuald:curvesapi"))
-        exclude(dependency("commons-codec:commons-codec"))
-        exclude(dependency("org.apache.commons:commons-lang3"))
     }
 
     // Realoca as APIs javax.xml que o Android não tem (ou tem incompletas).
