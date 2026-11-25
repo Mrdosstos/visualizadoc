@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import br.com.mrdosstos.visualizadoc.data.Tema
 
 private val AzulPrincipal = Color(0xFF1565C0)
 
@@ -18,8 +19,12 @@ private val EsquemaEscuro = darkColorScheme(primary = Color(0xFF90CAF9))
 
 /** Tema do app: usa as cores dinâmicas do sistema (Android 12+) quando disponíveis. */
 @Composable
-fun VisualizaDocTheme(content: @Composable () -> Unit) {
-    val escuro = isSystemInDarkTheme()
+fun VisualizaDocTheme(tema: Tema = Tema.SISTEMA, content: @Composable () -> Unit) {
+    val escuro = when (tema) {
+        Tema.SISTEMA -> isSystemInDarkTheme()
+        Tema.CLARO -> false
+        Tema.ESCURO -> true
+    }
     val context = LocalContext.current
     val esquema = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
