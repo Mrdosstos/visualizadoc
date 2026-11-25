@@ -62,6 +62,16 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests.all { teste ->
+            teste.testLogging {
+                events("passed", "failed", "skipped")
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            }
+            teste.timeout.set(java.time.Duration.ofMinutes(5))
+        }
+    }
+
     packaging {
         resources {
             excludes += setOf(
