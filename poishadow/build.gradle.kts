@@ -28,6 +28,8 @@ val ooxmlFull: Configuration by configurations.creating { isTransitive = false }
 
 dependencies {
     implementation(libs.poi.ooxml)
+    // Leitura de .doc (formato antigo do Word).
+    implementation(libs.poi.scratchpad)
     implementation(libs.aalto.xml)
     implementation(libs.stax.api)
     implementation(libs.log4j.api)

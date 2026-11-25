@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.mrdosstos.visualizadoc.R
 import br.com.mrdosstos.visualizadoc.core.ArquivoUtils
+import br.com.mrdosstos.visualizadoc.core.Compartilhar
 import br.com.mrdosstos.visualizadoc.core.ResultadoSalvar
 import br.com.mrdosstos.visualizadoc.planilha.Alinhamento
 import br.com.mrdosstos.visualizadoc.planilha.CelulaVisual
@@ -145,6 +146,17 @@ fun PlanilhaScreen(editor: EditorPlanilha, onVoltar: () -> Unit) {
                                 onClick = {
                                     menuAberto = false
                                     salvarComo.launch(editor.documento.nome)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Compartilhar") },
+                                onClick = {
+                                    menuAberto = false
+                                    if (editor.modificado) {
+                                        escopo.launch { snackbar.showSnackbar("Salve as alterações antes de compartilhar.") }
+                                    } else {
+                                        Compartilhar.enviar(context, editor.documento.uri, editor.formato.mime)
+                                    }
                                 },
                             )
                         }

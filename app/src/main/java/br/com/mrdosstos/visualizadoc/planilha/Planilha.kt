@@ -227,6 +227,14 @@ class Planilha private constructor(
     }
 
     companion object {
+        /** Grava uma planilha .xlsx vazia, com uma aba. */
+        fun escreverEmBranco(saida: OutputStream) {
+            XSSFWorkbook().use { wb ->
+                wb.createSheet("Planilha1")
+                wb.write(saida)
+            }
+        }
+
         fun abrir(
             entrada: InputStream,
             formato: FormatoPlanilha,

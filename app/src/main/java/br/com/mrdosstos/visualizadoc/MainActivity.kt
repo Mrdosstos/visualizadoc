@@ -20,6 +20,9 @@ import br.com.mrdosstos.visualizadoc.ui.pdf.PdfScreen
 import br.com.mrdosstos.visualizadoc.ui.planilha.PlanilhaScreen
 import br.com.mrdosstos.visualizadoc.ui.theme.VisualizaDocTheme
 
+private const val MIME_DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+private const val MIME_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
 class MainActivity : ComponentActivity() {
 
     private val vm: MainViewModel by viewModels()
@@ -34,10 +37,20 @@ class MainActivity : ComponentActivity() {
                 val seletor = rememberLauncherForActivityResult(
                     ActivityResultContracts.OpenDocument()
                 ) { uri -> if (uri != null) abrir(uri, manterPermissao = true) }
+                val falhaAoCriar = {
+                    Toast.makeText(this, "Não foi possível criar o arquivo.", Toast.LENGTH_LONG).show()
+                }
+                val novoWord = rememberLauncherForActivityResult(
+                    ActivityResultContracts.CreateDocument(MIME_DOCX)
+                ) { uri -> if (uri != null) vm.criarNovo(uri, TipoDocumento.WORD, falhaAoCriar) }
+                val novaPlanilha = rememberLauncherForActivityResult(
+                    ActivityResultContracts.CreateDocument(MIME_XLSX)
+                ) { uri -> if (uri != null) vm.criarNovo(uri, TipoDocumento.PLANILHA, falhaAoCriar) }
 
                 val documento = vm.documentoAberto
                 val editor = vm.editorPlanilha
                 val editorWord = vm.editorDocumento
+                val editorPdf = vm.editorPdf
                 val voltar = { vm.fechar() }
                 when {
                     documento == null -> HomeScreen(
@@ -45,13 +58,16 @@ class MainActivity : ComponentActivity() {
                         onAbrirArquivo = { tipo -> seletor.launch(TipoDocumento.mimesDe(tipo)) },
                         onAbrirRecente = { abrir(it.uri.toUri(), manterPermissao = false) },
                         onRemoverRecente = { vm.removerRecente(it.uri) },
+                        onNovo = { tipo ->
+                            if (tipo == TipoDocumento.PLANILHA) novaPlanilha.launch("Planilha.xlsx")
+                            else novoWord.launch("Documento.docx")
+                        },
                     )
                     editor != null -> PlanilhaScreen(editor, voltar)
-                    editorWord != null -> DocumentoScreen(editorWord, voltar)
-                    documento.tipo == TipoDocumento.PDF -> {
-                        BackHandler(onBack = voltar)
-                        PdfScreen(documento, voltar)
+                    editorWord != null -> DocumentoScreen(editorWord, voltar) { convertido ->
+                        abrir(convertido, manterPermissao = true)
                     }
+                    editorPdf != null -> PdfScreen(editorPdf, voltar)
                     else -> {
                         BackHandler(onBack = voltar)
                         EmBreveScreen(documento, voltar)

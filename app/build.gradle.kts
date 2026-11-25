@@ -7,8 +7,8 @@ plugins {
 }
 
 // Versão: o workflow de release passa -PversionName (da tag) e -PversionCode.
-val versaoNome = (findProperty("versionName") as String?) ?: "0.3.0"
-val versaoCodigo = (findProperty("versionCode") as String?)?.toInt() ?: 3
+val versaoNome = (findProperty("versionName") as String?) ?: "0.5.0"
+val versaoCodigo = (findProperty("versionCode") as String?)?.toInt() ?: 5
 
 // Assinatura de release: lida de variáveis de ambiente (Secrets do GitHub).
 // Sem elas (build local), o release é assinado com a chave de debug.
@@ -108,6 +108,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(poiJar)
+    // Edição e busca de texto em PDF (Apache 2.0).
+    implementation(libs.pdfbox.android)
 
     testImplementation(libs.junit)
 }

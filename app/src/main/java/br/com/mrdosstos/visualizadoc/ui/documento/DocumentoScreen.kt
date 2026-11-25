@@ -70,7 +70,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import br.com.mrdosstos.visualizadoc.R
+import android.net.Uri
 import br.com.mrdosstos.visualizadoc.core.ArquivoUtils
+import br.com.mrdosstos.visualizadoc.core.Compartilhar
 import br.com.mrdosstos.visualizadoc.core.ResultadoSalvar
 import br.com.mrdosstos.visualizadoc.documento.Alinhamento
 import br.com.mrdosstos.visualizadoc.documento.Bloco
@@ -86,7 +88,7 @@ private data class CelulaEmEdicao(val tabela: Int, val linha: Int, val coluna: I
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DocumentoScreen(editor: EditorDocumento, onVoltar: () -> Unit) {
+fun DocumentoScreen(editor: EditorDocumento, onVoltar: () -> Unit, onAbrirConvertido: (Uri) -> Unit) {
     val context = LocalContext.current
     val escopo = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
@@ -106,6 +108,18 @@ fun DocumentoScreen(editor: EditorDocumento, onVoltar: () -> Unit) {
             }
         }
     }
+
+    val converter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(MIME_DOCX)) { uri ->
+        if (uri != null) escopo.launch {
+            ArquivoUtils.manterPermissao(context, uri)
+            when (val r = editor.converterParaDocx(uri)) {
+                ResultadoSalvar.Ok -> onAbrirConvertido(uri)
+                is ResultadoSalvar.Erro -> snackbar.showSnackbar(r.mensagem)
+                ResultadoSalvar.PrecisaSalvarComo -> snackbar.showSnackbar("Sem permissão para gravar nesse local.")
+            }
+        }
+    }
+    val nomeDocx = editor.documento.nome.substringBeforeLast('.') + ".docx"
 
     fun salvar(sairDepois: Boolean) {
         escopo.launch {
@@ -150,7 +164,7 @@ fun DocumentoScreen(editor: EditorDocumento, onVoltar: () -> Unit) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { salvar(false) }, enabled = pronto && !editor.salvando) {
+                    IconButton(onClick = { salvar(false) }, enabled = pronto && !editor.salvando && !editor.formatoAntigo) {
                         Icon(painterResource(R.drawable.ic_salvar), contentDescription = "Salvar")
                     }
                     Box {
@@ -158,11 +172,26 @@ fun DocumentoScreen(editor: EditorDocumento, onVoltar: () -> Unit) {
                             Icon(painterResource(R.drawable.ic_mais), contentDescription = "Mais opções")
                         }
                         DropdownMenu(expanded = menuAberto, onDismissRequest = { menuAberto = false }) {
+                            if (editor.formatoAntigo) {
+                                DropdownMenuItem(
+                                    text = { Text("Converter para .docx…") },
+                                    onClick = { menuAberto = false; converter.launch(nomeDocx) },
+                                )
+                            } else {
+                                DropdownMenuItem(
+                                    text = { Text("Salvar como…") },
+                                    onClick = {
+                                        menuAberto = false
+                                        salvarComo.launch(editor.documento.nome)
+                                    },
+                                )
+                            }
                             DropdownMenuItem(
-                                text = { Text("Salvar como…") },
+                                text = { Text("Compartilhar") },
                                 onClick = {
                                     menuAberto = false
-                                    salvarComo.launch(editor.documento.nome)
+                                    if (editor.modificado) avisar("Salve as alterações antes de compartilhar.")
+                                    else Compartilhar.enviar(context, editor.documento.uri, MIME_DOCX)
                                 },
                             )
                         }
@@ -171,7 +200,23 @@ fun DocumentoScreen(editor: EditorDocumento, onVoltar: () -> Unit) {
             )
         },
         bottomBar = {
-            if (editor.editando != null) BarraDeFormatacao(editor, avisar)
+            if (editor.editando != null) {
+                BarraDeFormatacao(editor, avisar)
+            } else if (editor.formatoAntigo && pronto) {
+                Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
+                    Row(
+                        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "Arquivo .doc antigo: só leitura.",
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        TextButton(onClick = { converter.launch(nomeDocx) }) { Text("Converter para .docx") }
+                    }
+                }
+            }
         },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {

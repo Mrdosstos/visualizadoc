@@ -12,6 +12,7 @@ import br.com.mrdosstos.visualizadoc.core.ResultadoSalvar
 import br.com.mrdosstos.visualizadoc.documento.Bloco
 import br.com.mrdosstos.visualizadoc.documento.DocumentoWord
 import br.com.mrdosstos.visualizadoc.documento.Formato
+import br.com.mrdosstos.visualizadoc.documento.WordAntigo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -54,6 +55,9 @@ class EditorDocumento(
     var salvando by mutableStateOf(false)
         private set
 
+    /** .doc antigo: só leitura, com opção de converter para .docx. */
+    val formatoAntigo: Boolean = documentoInicial.nome.lowercase().endsWith(".doc")
+
     private var word: DocumentoWord? = null
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,12 +66,19 @@ class EditorDocumento(
     init {
         escopo.launch {
             try {
-                val aberto = withContext(fila) {
-                    app.contentResolver.openInputStream(documento.uri)?.use { DocumentoWord.abrir(it) }
-                        ?: throw FileNotFoundException("Não foi possível ler o arquivo")
+                if (formatoAntigo) {
+                    blocos = withContext(fila) {
+                        app.contentResolver.openInputStream(documento.uri)?.use { WordAntigo.ler(it) }
+                            ?: throw FileNotFoundException("Não foi possível ler o arquivo")
+                    }
+                } else {
+                    val aberto = withContext(fila) {
+                        app.contentResolver.openInputStream(documento.uri)?.use { DocumentoWord.abrir(it) }
+                            ?: throw FileNotFoundException("Não foi possível ler o arquivo")
+                    }
+                    word = aberto
+                    blocos = aberto.blocos()
                 }
-                word = aberto
-                blocos = aberto.blocos()
                 estado = EstadoDocumento.Pronto
             } catch (_: OutOfMemoryError) {
                 estado = EstadoDocumento.Erro("O documento é grande demais para abrir neste aparelho.")
@@ -150,7 +161,23 @@ class EditorDocumento(
         return aplicar { editarCelula(indiceTabela, linha, coluna, texto) }
     }
 
+    /** Grava o conteúdo do .doc como um novo .docx no destino escolhido. */
+    suspend fun converterParaDocx(destino: Uri): ResultadoSalvar {
+        salvando = true
+        return try {
+            val atuais = blocos
+            val bytes = withContext(fila) { ByteArrayOutputStream().also { WordAntigo.converter(atuais, it) }.toByteArray() }
+            withContext(Dispatchers.IO) { Gravacao.abrirSaida(app, destino).use { it.write(bytes) } }
+            ResultadoSalvar.Ok
+        } catch (e: Exception) {
+            ResultadoSalvar.Erro("Não foi possível converter: ${e.message}")
+        } finally {
+            salvando = false
+        }
+    }
+
     suspend fun salvar(destino: Uri = documento.uri): ResultadoSalvar {
+        if (formatoAntigo) return ResultadoSalvar.Erro("Arquivos .doc são só leitura. Use \"Converter para .docx\".")
         concluirEdicao()?.let { return ResultadoSalvar.Erro(it) }
         val w = word ?: return ResultadoSalvar.Erro("O documento ainda não foi carregado.")
         salvando = true

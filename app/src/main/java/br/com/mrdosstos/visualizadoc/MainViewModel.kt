@@ -11,7 +11,14 @@ import br.com.mrdosstos.visualizadoc.core.ArquivoUtils
 import br.com.mrdosstos.visualizadoc.core.DocumentoAberto
 import br.com.mrdosstos.visualizadoc.core.TipoDocumento
 import br.com.mrdosstos.visualizadoc.data.RecentesRepository
+import br.com.mrdosstos.visualizadoc.core.Gravacao
+import br.com.mrdosstos.visualizadoc.documento.DocumentoWord
+import br.com.mrdosstos.visualizadoc.planilha.Planilha
 import br.com.mrdosstos.visualizadoc.ui.documento.EditorDocumento
+import br.com.mrdosstos.visualizadoc.ui.pdf.EditorPdf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import br.com.mrdosstos.visualizadoc.ui.planilha.EditorPlanilha
 
 /** Estado da tela principal; sobrevive à rotação do aparelho. */
@@ -26,6 +33,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var editorPlanilha by mutableStateOf<EditorPlanilha?>(null)
         private set
     var editorDocumento by mutableStateOf<EditorDocumento?>(null)
+        private set
+    var editorPdf by mutableStateOf<EditorPdf?>(null)
         private set
 
     /** Abre o documento. Retorna false se não for possível acessar o arquivo. */
@@ -43,9 +52,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (documento.tipo == TipoDocumento.PLANILHA) {
             editorPlanilha = EditorPlanilha(documento, app, viewModelScope, ::registrarRecente)
         }
-        // .doc (formato binário antigo) ainda não é suportado; só .docx.
-        if (documento.tipo == TipoDocumento.WORD && !documento.nome.lowercase().endsWith(".doc")) {
-            editorDocumento = EditorDocumento(documento, app, viewModelScope, ::registrarRecente)
+        when (documento.tipo) {
+            TipoDocumento.WORD -> editorDocumento = EditorDocumento(documento, app, viewModelScope, ::registrarRecente)
+            TipoDocumento.PDF -> editorPdf = EditorPdf(documento, app, viewModelScope, ::registrarRecente)
+            else -> Unit
         }
         return true
     }
@@ -55,6 +65,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         editorPlanilha = null
         editorDocumento?.close()
         editorDocumento = null
+        editorPdf?.close()
+        editorPdf = null
         documentoAberto = null
     }
 
@@ -71,5 +83,22 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         editorPlanilha?.close()
         editorDocumento?.close()
+        editorPdf?.close()
+    }
+
+    /** Cria um .docx ou .xlsx em branco no local escolhido e abre. Avisa por [onErro] se falhar. */
+    fun criarNovo(uri: Uri, tipo: TipoDocumento, onErro: () -> Unit) {
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    Gravacao.abrirSaida(app, uri).use { saida ->
+                        if (tipo == TipoDocumento.PLANILHA) Planilha.escreverEmBranco(saida)
+                        else DocumentoWord.escreverEmBranco(saida)
+                    }
+                }.isSuccess
+            }
+            if (!ok || !abrir(uri, manterPermissao = true)) onErro()
+        }
     }
 }

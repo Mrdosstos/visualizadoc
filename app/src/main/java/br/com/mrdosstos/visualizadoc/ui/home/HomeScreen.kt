@@ -23,7 +23,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -80,7 +83,9 @@ fun HomeScreen(
     onAbrirArquivo: (TipoDocumento?) -> Unit,
     onAbrirRecente: (ArquivoRecente) -> Unit,
     onRemoverRecente: (ArquivoRecente) -> Unit,
+    onNovo: (TipoDocumento) -> Unit,
 ) {
+    var menuNovo by rememberSaveable { mutableStateOf(false) }
     var filtro by rememberSaveable { mutableStateOf<TipoDocumento?>(null) }
     val cores = MaterialTheme.colorScheme
     val visiveis = recentes.filter { filtro == null || it.tipo == filtro }
@@ -165,12 +170,34 @@ fun HomeScreen(
             }
         }
 
-        ExtendedFloatingActionButton(
-            onClick = { onAbrirArquivo(filtro) },
-            icon = { Icon(painterResource(R.drawable.ic_abrir), contentDescription = null) },
-            text = { Text("Abrir arquivo") },
-            modifier = Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(20.dp),
-        )
+        Column(
+            Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(20.dp),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box {
+                SmallFloatingActionButton(onClick = { menuNovo = true }) {
+                    Icon(painterResource(R.drawable.ic_novo), contentDescription = "Novo arquivo")
+                }
+                DropdownMenu(expanded = menuNovo, onDismissRequest = { menuNovo = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Novo documento Word") },
+                        leadingIcon = { Icon(painterResource(R.drawable.ic_tipo_word), null, tint = CATEGORIAS[2].cor) },
+                        onClick = { menuNovo = false; onNovo(TipoDocumento.WORD) },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Nova planilha") },
+                        leadingIcon = { Icon(painterResource(R.drawable.ic_tipo_planilha), null, tint = CATEGORIAS[1].cor) },
+                        onClick = { menuNovo = false; onNovo(TipoDocumento.PLANILHA) },
+                    )
+                }
+            }
+            ExtendedFloatingActionButton(
+                onClick = { onAbrirArquivo(filtro) },
+                icon = { Icon(painterResource(R.drawable.ic_abrir), contentDescription = null) },
+                text = { Text("Abrir arquivo") },
+            )
+        }
     }
 }
 

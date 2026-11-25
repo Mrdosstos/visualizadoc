@@ -28,6 +28,9 @@ class DocumentoPdf private constructor(
     /** Proporção altura/largura de cada página, preenchida conforme renderiza. */
     private val proporcoes = FloatArray(totalPaginas) { PROPORCAO_A4 }
 
+    /** Largura de cada página em pontos PDF (1/72 pol.), preenchida conforme renderiza. */
+    private val larguras = FloatArray(totalPaginas) { 0f }
+
     private val cache = object : LruCache<String, Bitmap>(
         (Runtime.getRuntime().maxMemory() / 6).toInt()
     ) {
@@ -36,15 +39,19 @@ class DocumentoPdf private constructor(
 
     fun proporcao(indice: Int): Float = proporcoes[indice]
 
+    /** Largura da página em pontos PDF, ou 0 se ainda não foi renderizada. */
+    fun larguraPontos(indice: Int): Float = larguras[indice]
+
     /** Renderiza a página na largura pedida. Chamar fora da thread principal. */
     fun renderizar(indice: Int, larguraPx: Int): Bitmap? {
         val chave = "$indice-$larguraPx"
-        cache.get(chave)?.let { return it }
+        cache.get(chave)?.let { if (larguras[indice] > 0f) return it }
         synchronized(trava) {
             if (fechado) return null
             renderer.openPage(indice).use { pagina ->
                 val proporcao = pagina.height.toFloat() / pagina.width
                 proporcoes[indice] = proporcao
+                larguras[indice] = pagina.width.toFloat()
                 val bitmap = Bitmap.createBitmap(
                     larguraPx,
                     (larguraPx * proporcao).toInt().coerceAtLeast(1),
@@ -71,6 +78,17 @@ class DocumentoPdf private constructor(
 
     companion object {
         private const val PROPORCAO_A4 = 1.4142f
+
+        /** Abre uma cópia local do PDF (não apaga o arquivo ao fechar). */
+        fun abrirArquivo(arquivo: File): DocumentoPdf {
+            val pfd = ParcelFileDescriptor.open(arquivo, ParcelFileDescriptor.MODE_READ_ONLY)
+            return try {
+                DocumentoPdf(pfd, null)
+            } catch (e: Exception) {
+                pfd.close()
+                throw e
+            }
+        }
 
         /**
          * Abre o PDF direto pela Uri. Se o provedor não entregar um descritor

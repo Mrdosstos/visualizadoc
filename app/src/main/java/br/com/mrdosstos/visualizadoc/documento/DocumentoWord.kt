@@ -299,6 +299,14 @@ class DocumentoWord private constructor(private val doc: XWPFDocument) : Closeab
     companion object {
         fun abrir(entrada: InputStream): DocumentoWord = DocumentoWord(XWPFDocument(entrada))
 
+        /** Grava um .docx vazio, com um parágrafo para começar a escrever. */
+        fun escreverEmBranco(saida: OutputStream) {
+            XWPFDocument().use { doc ->
+                doc.createParagraph()
+                doc.write(saida)
+            }
+        }
+
         /** Usado nos testes e, no futuro, para "Novo documento". */
         fun novo(): DocumentoWord = DocumentoWord(XWPFDocument())
 
