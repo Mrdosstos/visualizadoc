@@ -24,6 +24,14 @@ enum class TipoDocumento(val sigla: String, val descricao: String) {
         val MIMES_SUPORTADOS: Array<String> =
             (MIMES_PDF + MIMES_PLANILHA + MIMES_WORD).toTypedArray()
 
+        /** MIME types de um tipo só, para abrir o seletor já filtrado. */
+        fun mimesDe(tipo: TipoDocumento?): Array<String> = when (tipo) {
+            PDF -> MIMES_PDF.toTypedArray()
+            PLANILHA -> MIMES_PLANILHA.toTypedArray()
+            WORD -> MIMES_WORD.toTypedArray()
+            else -> MIMES_SUPORTADOS
+        }
+
         /** Detecta o tipo pelo MIME e, se não bater, pela extensão do nome. */
         fun detectar(mime: String?, nomeArquivo: String): TipoDocumento {
             val extensao = nomeArquivo.substringAfterLast('.', "").lowercase()

@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 when {
                     documento == null -> HomeScreen(
                         recentes = vm.recentes,
-                        onAbrirArquivo = { seletor.launch(TipoDocumento.MIMES_SUPORTADOS) },
+                        onAbrirArquivo = { tipo -> seletor.launch(TipoDocumento.mimesDe(tipo)) },
                         onAbrirRecente = { abrir(it.uri.toUri(), manterPermissao = false) },
                         onRemoverRecente = { vm.removerRecente(it.uri) },
                     )
