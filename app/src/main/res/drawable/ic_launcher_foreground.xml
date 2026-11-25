@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Folha de documento com canto dobrado e linhas de texto -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,28 H62 L74,40 V80 H36 Z" />
+    <path
+        android:fillColor="#BBDEFB"
+        android:pathData="M62,28 V40 H74 Z" />
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M42,50 H68 V53 H42 Z M42,58 H68 V61 H42 Z M42,66 H58 V69 H42 Z" />
+</vector>
